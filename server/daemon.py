@@ -31,7 +31,7 @@ class CollateHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-type", "text/plain")
                 self.end_headers()
-                self.wfile.write(value)
+                self.wfile.write(str(value[0]))
             else:
                 self.send_error(404, "Unknown request")
         except:
@@ -48,9 +48,6 @@ class CollateHandler(BaseHTTPRequestHandler):
                 key = query.get("key")[0]
                 value = query.get("value")[0]
                 passhash = query.get("passhash")[0]
-                print "key: " + str(key)
-                print "value: " + str(value)
-                print "hash:" + str(passhash)
                 c.execute("SELECT value FROM data WHERE key = ?", (key,))
                 if c.fetchone() != None:
                     c.execute("SELECT value FROM data WHERE key = ? AND passhash = ?", (key, passhash))
