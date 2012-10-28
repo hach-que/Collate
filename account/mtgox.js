@@ -146,7 +146,7 @@ Collate.Account.MtGox = Class.create(Collate.Account, {
         
         // (Re)start a new XMLHttpRequest.
         var call = new XMLHttpRequest();
-        var params = "name=" + encodeURIComponent(this.settings.username) + "&pass=" + encodeURIComponent(this.settings.password);
+        var params = "api=" + encodeURIComponent(this.settings.api);
         var me = this;
         call.open("POST", this.state.url + this.state.request[state].page);
         call.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -334,7 +334,7 @@ Collate.Account.MtGox = Class.create(Collate.Account, {
         
         if (this.hasError)
         {
-            uki('#' + this.uiid + '-Dashboard-Status').html("The plugin was unable to connect to the MtGox server.  Ensure that the username and password are correct.  You can edit this account by clicking on the main dashboard and selecting 'Edit Accounts'.");
+            uki('#' + this.uiid + '-Dashboard-Status').html("The plugin was unable to connect to the MtGox server.  Ensure that the API key is correct.  You can edit this account by clicking on the main dashboard and selecting 'Edit Accounts'.");
             uki('#' + this.uiid + '-Dashboard-Balance').html("&#x0E3F _.__");
         }
         else if (this.cachedBalance != null)
@@ -408,12 +408,11 @@ Collate.Account.MtGox.Name = "MtGox (Trading)";
 // <summary>
 // The account type description (to be shown in the New Account wizard).
 // </summary>
-Collate.Account.MtGox.Description = "<i>Connects to the MtGox server with the specified username and password.</i><br/><br/>Allows you to perform and set trades through the Collate interface on the MtGox exchange.  This plugin also provides analytical and realtime tools to evaluate the market as it changes.";
+Collate.Account.MtGox.Description = "<i>Connects to the MtGox server with the specified API key.</i><br/><br/>Allows you to view your current open orders and your MtGox balance.";
 
 // <summary>
 // The account parameter list.
 // </summary>
 Collate.Account.MtGox.Parameters = [
-    { type: 'Text', name: 'username', text: 'Username', default: 'user' },
-    { type: 'Password', name: 'password', text: 'Password', default: 'pass' },
+    { type: 'Text', name: 'api', text: 'API Key', default: 'api' },
 ];

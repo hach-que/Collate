@@ -24,7 +24,13 @@ Collate.Backend.AccountManager = Class.create({
         var s = this.Storage.getRawItem("global-accounts");
         if (s != null)
             for (var i = 0; i < s.length; i += 1)
-                this.Accounts[s[i].name] = new Collate.Account[s[i]["type"]](s[i].name, s[i].parameters);
+            {
+                try
+                {
+                    this.Accounts[s[i].name] = new Collate.Account[s[i]["type"]](s[i].name, s[i].parameters);
+                }
+                catch (e) { }
+            }
         
         // Now ask all of them to connect.
         for (var i in this.Accounts)

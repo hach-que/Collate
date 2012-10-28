@@ -24,32 +24,7 @@ Collate.Global.Dashboard = Class.create(Collate.Global, {
     // </summary>
     getToolbar: function()
     {
-        // Return the relevant toolbar items for the dashboard.
-        var n = 0; for (var i in Collate.Backend.Accounts) n += 1;
-        if (n > 0)
-            return [
-                    {
-                        text: "New Account",
-                        width: 121,
-                        target: Backend.Pages["NewAccount"],
-                        page: null
-                    },
-                    {
-                        text: "Edit Accounts",
-                        width: 122,
-                        target: Backend.Pages["EditAccounts"],
-                        page: null
-                    }
-                ];
-        else
-            return [
-                    {
-                        text: "New Account",
-                        width: 121,
-                        target: Backend.Pages["NewAccount"],
-                        page: null
-                    }
-                ];
+        return this.getUniversalToolbar();
     },
     
     // <summary>

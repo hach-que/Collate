@@ -36,6 +36,51 @@ Collate.Global = Class.create({
     {
         // There's no UI as this isn't a proper class.
         return null;
-    }
+    },
     
+    // <summary>
+    // Gets the universal toolbar for any global pages.
+    // </summary>
+    getUniversalToolbar: function()
+    {
+        // Return the relevant toolbar items for the dashboard.
+        var n = 0; for (var i in Collate.Backend.Accounts) n += 1;
+        if (n > 0)
+            return [
+                    {
+                        text: "Sync",
+                        width: 80,
+                        target: Backend.Pages["Sync"],
+                        page: null
+                    },
+                    {
+                        text: "New Account",
+                        width: 121,
+                        target: Backend.Pages["NewAccount"],
+                        page: null
+                    },
+                    {
+                        text: "Edit Accounts",
+                        width: 122,
+                        target: Backend.Pages["EditAccounts"],
+                        page: null
+                    }
+                ];
+        else
+            return [
+                    {
+                        text: "Sync",
+                        width: 80,
+                        target: Backend.Pages["Sync"],
+                        page: null
+                    },
+                    {
+                        text: "New Account",
+                        width: 121,
+                        target: Backend.Pages["NewAccount"],
+                        page: null
+                    }
+                ];
+    }
+
 });
