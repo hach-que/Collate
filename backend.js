@@ -40,6 +40,7 @@ Collate.Backend = Class.create({
         this.Pages["Dashboard"] = new Collate.Global.Dashboard();
         this.Pages["NewAccount"] = new Collate.Global.NewAccount();
         this.Pages["EditAccounts"] = new Collate.Global.EditAccounts();
+        this.Pages["Sync"] = new Collate.Global.Sync();
         
         // Start the account management system.
         this.AccountManager = new Collate.Backend.AccountManager(this);
