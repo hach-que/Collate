@@ -14,8 +14,20 @@ Collate.Backend.Storage = Class.create({
     // <summary>
     // Initializes the class.
     // </summary>
-    initialize: function()
+    initialize: function(host, user, pass)
     {
+        this.Host = host;
+        this.User = user;
+        this.Pass = pass;
+    },
+
+    // <summary>
+    // Calculates a hash of the password suitable for
+    // sending to the server.
+    // </summary>
+    getPasswordHash: function()
+    {
+        return hex_sha1(this.Pass);
     },
     
     // <summary>
@@ -26,11 +38,33 @@ Collate.Backend.Storage = Class.create({
     // </summary>
     getRawItem: function(key)
     {
-        var val = localStorage.getItem(key);
-        if (val == null || val == "")
-            return null;
+        // Read the entire existing state from the server.
+        var data = null;
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://" + this.Host + "/retrieve/" + this.User, false);
+        xhr.send();
+        if (xhr.status == 200)
+        {
+            if (xhr.responseText == null || xhr.responseText == "")
+                return null;
+            else
+                data = xhr.responseText;
+        }
         else
-            return JSON.parse(val);
+            return null;
+
+        // Decrypt with password.
+        try
+        {
+            data = JSON.parse(sjcl.decrypt(this.Pass, data));
+        }
+        catch
+        {
+            return null;
+        }
+
+        // Return the value.
+        return data[key];
     },
     
     // <summary>
@@ -38,7 +72,58 @@ Collate.Backend.Storage = Class.create({
     // </summary>
     setRawItem: function(key, value)
     {
-        localStorage.setItem(key, JSON.stringify(value));
+        // Read the entire existing state from the server.
+        var data = null;
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://" + this.Host + "/retrieve/" + this.User, false);
+        xhr.send();
+        if (xhr.status == 200)
+        {
+            if (xhr.responseText == null || xhr.responseText == "")
+                return false;
+            else
+                data = xhr.responseText;
+        }
+        else
+            return false;
+
+        // Decrypt with password.
+        try
+        {
+            data = JSON.parse(sjcl.decrypt(this.Pass, data));
+        }
+        catch
+        {
+            return false;
+        }
+
+        // Set the value.
+        if (data == null)
+            data = {};
+        data[key] = JSON.stringify(value);
+
+        // Reencrypt with password.
+        try
+        {
+            data = sjcl.encrypt(this.Pass, JSON.stringify(data));
+        }
+        catch
+        {
+            return null;
+        }
+
+        // Save the blob back to the server.
+        var fd = new FormData();
+        fd.append("key", key);
+        fd.append("value", data);
+        fd.append("passhash", this.getPasswordHash());
+        xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://" + this.Host + "/store", false);
+        xhr.send(fd);
+        if (xhr.status == 200)
+            return true;
+        else
+            return false;
     }
     
 });
