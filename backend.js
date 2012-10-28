@@ -185,11 +185,12 @@ Collate.Backend = Class.create({
         }
         total = Math.round(total * 100000000) / 100000000; // Fix rounding errors.
         chrome.browserAction.setBadgeBackgroundColor({ color: [0, 127, 0, 255] });
-        if (total >= 0     && total < 10)     chrome.browserAction.setBadgeText({ text: total.toFixed(2) });
-        if (total >= 10    && total < 100)    chrome.browserAction.setBadgeText({ text: total.toFixed(1) });
-        if (total >= 100   && total < 1000)   chrome.browserAction.setBadgeText({ text: total.toFixed(0) });
-        if (total >= 1000  && total < 10000)  chrome.browserAction.setBadgeText({ text: (total / 1000).toFixed(1) + "k" });
-        if (total >= 10000)                   chrome.browserAction.setBadgeText({ text: (total / 1000).toFixed(0) + "k" });
+        atotal = Math.abs(total)
+        if (atotal >= 0     && atotal < 10)     chrome.browserAction.setBadgeText({ text: total.toFixed(2) });
+        if (atotal >= 10    && atotal < 100)    chrome.browserAction.setBadgeText({ text: total.toFixed(1) });
+        if (atotal >= 100   && atotal < 1000)   chrome.browserAction.setBadgeText({ text: total.toFixed(0) });
+        if (atotal >= 1000  && atotal < 10000)  chrome.browserAction.setBadgeText({ text: (total / 1000).toFixed(1) + "k" });
+        if (atotal >= 10000)                   chrome.browserAction.setBadgeText({ text: (total / 1000).toFixed(0) + "k" });
     }
     
 });

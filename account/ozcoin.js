@@ -40,7 +40,7 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
         
         // Construct the URL.
         this.state = {
-            url:"https://ozco.in/api.php?api_key=" + this.settings.apiKey
+            url:"http://ozco.in/api.php?api_key=" + this.settings.apiKey
             };
         
         // We are now connected (the onRequest won't fire correctly unless
@@ -76,7 +76,7 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
         // Handle the XMLHttpRequest if there is one.
         if (xhr != null && xhr.responseText != "")
         {
-            this.cachedInfo = JSON.parse(xhr.responseText);
+            this.cachedInfo = JSON.parse(xhr.responseText)["user"];
             
             // Cause the backend to refresh the total balance.
             Backend.refreshBalance();
@@ -131,7 +131,7 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
     updateSidebar: function()
     {
         // Check to see if we should show "Error" in the sidebar.
-        if (this.cachedInfo != null && this.cachedInfo["hashrate"] == null)
+        if (this.cachedInfo != null && this.cachedInfo["hashrate_raw"] == null)
         {
             Backend.getFrontend().setPageStatus(this, null, "ERROR");
             Backend.getFrontend().setPageStatus(this, "Mining (Generation)", null);
@@ -139,18 +139,18 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
         }
         
         // Set the balance in the sidebar.
-        if (this.cachedInfo == null || parseFloat(this.cachedInfo["confirmed_rewards"]) == 0)
+        if (this.cachedInfo == null || parseFloat(this.cachedInfo["pending_payout"]) == 0)
             Backend.getFrontend().setPageStatus(this, null, null);
         else
-            Backend.getFrontend().setPageStatus(this, null, "&#x0E3F " + parseFloat(this.cachedInfo["confirmed_rewards"]).toFixed(2));
+            Backend.getFrontend().setPageStatus(this, null, "&#x0E3F " + parseFloat(this.cachedInfo["pending_payout"]).toFixed(2));
         
         // Set mining information in the sidebar.
-        if (this.cachedInfo == null || parseFloat(this.cachedInfo["hashrate"]) == 0)
+        if (this.cachedInfo == null || parseFloat(this.cachedInfo["hashrate_raw"]) == 0)
             Backend.getFrontend().setPageStatus(this, "Mining (Generation)", null);
         else if (parseFloat(this.cachedInfo["hashrate"]) >= 1000)
-            Backend.getFrontend().setPageStatus(this, "Mining (Generation)", (parseFloat(this.cachedInfo["hashrate"]) / 1000).toFixed(2) + " Gh/s");
+            Backend.getFrontend().setPageStatus(this, "Mining (Generation)", (parseFloat(this.cachedInfo["hashrate_raw"]) / 1000).toFixed(2) + " Gh/s");
         else
-            Backend.getFrontend().setPageStatus(this, "Mining (Generation)", parseFloat(this.cachedInfo["hashrate"]).toFixed(2) + " Mh/s");
+            Backend.getFrontend().setPageStatus(this, "Mining (Generation)", parseFloat(this.cachedInfo["hashrate_raw"]).toFixed(2) + " Mh/s");
     },
     
     // <summary>
@@ -166,7 +166,7 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
                     width: 100,
                     onClick: function()
                     {
-                        window.open("https://ozco.in/");
+                        window.open("http://ozco.in/");
                     }
                 }
             ];
@@ -253,7 +253,7 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
             
             var text = "You are currently contributing " + parseFloat(this.cachedInfo["hashrate"]).toFixed(2) + " Mh/s to the pool.<br/>";
             text += "<br/>";
-            text += "You have currently earnt &#x0E3F " + parseFloat(this.cachedInfo["confirmed_rewards"]).toFixed(2) + " through mining with OzCoin, excluding payouts.  You can withdraw coins via the <a href='http://ozco.in/' target='_blank'>OzCoin website</a>.<br/>";
+            text += "You have currently earnt &#x0E3F " + parseFloat(this.cachedInfo["pending_payout"]).toFixed(2) + " through mining with OzCoin, excluding payouts.  You can withdraw coins via the <a href='http://ozco.in/' target='_blank'>OzCoin website</a>.<br/>";
             text += "<br/>";
             text += "The above statistics are updated every 10 minutes.";
             uki('#' + this.uiid + '-Mining-HashRate').html(parseFloat(this.cachedInfo["hashrate"]).toFixed(2) + " Mhashes/sec");
@@ -273,7 +273,7 @@ Collate.Account.OzCoin = Class.create(Collate.Account, {
     {
         // If this returns null, it means there's no value yet.
         if (this.cachedInfo == null) return null;
-        return parseFloat(this.cachedInfo["confirmed_rewards"]);
+        return parseFloat(this.cachedInfo["pending_payout"]);
     }
     
 });

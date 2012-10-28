@@ -280,7 +280,7 @@ Collate.Account.RPC = Class.create(Collate.Account, {
     // Sends a command to the server indicating it should send the specified
     // amount of coins to the specified address.
     // </summary>
-    sendAmount: function(address, amount)
+    sendAmount: function(address, amount, passphrase)
     {
         if (confirm("Are you sure you want to send " + parseFloat(amount) + " BTC to " + address + "?  This action can not be reversed!"))
         {
@@ -291,6 +291,8 @@ Collate.Account.RPC = Class.create(Collate.Account, {
             
             var call = new XMLHttpRequest();
             var me = this;
+            var first = (passphrase != "");
+            var second = (passphrase == "");
             call.open("POST", this.state.url, true, this.settings.username, this.settings.password);
             call.onreadystatechange = function() 
             {
@@ -298,6 +300,31 @@ Collate.Account.RPC = Class.create(Collate.Account, {
                 {
                     if (call.responseText == "") return;
                     
+                    if (first)
+                    {
+                        // Passphrase caused unlock.
+                        first = false;
+                        second = true;
+                        var response = JSON.parse(call.responseText);
+                        if (response["result"] != null)
+                            uki('#' + me.uiid + '-Sending-Progress').text("The wallet is now unlocked..");
+                        else
+                        {
+                            uki('#' + me.uiid + '-Sending-Progress').text("Unable to unlock wallet: " + response["error"]["message"]);
+                            uki('#' + me.uiid + '-Sending-Confirm').visible(true);
+                        }
+                        return;
+                    }
+                    else if (second)
+                    {
+                        second = false;
+                    }
+                    else
+                    {
+                        // Wallet relock.
+                        return;
+                    }
+
                     // Show the response data.
                     var response = JSON.parse(call.responseText);
                     if (response["result"] != null)
@@ -314,6 +341,17 @@ Collate.Account.RPC = Class.create(Collate.Account, {
                     }
                 }
             };
+            if (passphrase != "")
+            {
+                call.send(JSON.stringify(
+                    {
+                        jsonrpc: 1.0,
+                        id: 1,
+                        method: "walletpassphrase",
+                        params: [passphrase, 15]
+                    }
+                ));
+            }
             call.send(JSON.stringify(
                 { // RPC_STATE_SENDAMOUNT
                     jsonrpc: 1.0,
@@ -322,6 +360,17 @@ Collate.Account.RPC = Class.create(Collate.Account, {
                     params: [address, parseFloat(amount)]
                 }
             ));
+            if (passphrase != "")
+            {
+                call.send(JSON.stringify(
+                    {
+                        jsonrpc: 1.0,
+                        id: 1,
+                        method: "walletlock",
+                        params: []
+                    }
+                ));
+            }
         }
     },
     
@@ -391,7 +440,7 @@ Collate.Account.RPC = Class.create(Collate.Account, {
     getMenu: function()
     {
         // Return menu items.
-        return ["Transactions", "Mining (Generation)"];
+        return ["Transactions"];
     },
     
     // <summary>
@@ -506,6 +555,8 @@ Collate.Account.RPC = Class.create(Collate.Account, {
                             { view: 'TextField', rect: '110 110 300 22', anchors: 'left top', id: this.uiid + '-Sending-Address', placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
                             { view: 'Label', rect: '10 140 100 22', anchors: 'left top', id: this.uiid + '-Sending-Amount-Label', html: "Amount in &#x0E3F:" },
                             { view: 'TextField', rect: '110 140 80 22', anchors: 'left top', id: this.uiid + '-Sending-Amount', placeholder: '0.00' },
+                            { view: 'Label', rect: '10 170 100 22', anchors: 'left top', id: this.uiid + '-Sending-Passphrase-Label', html: "Passphrase:" },
+                            { view: 'PasswordTextField', rect: '110 170 200 22', anchors: 'left top', id: this.uiid + '-Sending-Passphrase', placeholder: '' },
                             { view: 'Label', rect: '10 265 100 24', anchors: 'left top', id: this.uiid + '-Sending-Progress', text: "The transaction is now in progress..." },
                             { view: 'Button', rect: '490 265 100 24', anchors: 'bottom right', id: this.uiid + '-Sending-Confirm', text: 'Send Coins' },
                         ] }
@@ -524,6 +575,7 @@ Collate.Account.RPC = Class.create(Collate.Account, {
                 {
                     var address = uki('#' + me.uiid + '-Sending-Address').value();
                     var amount = uki('#' + me.uiid + '-Sending-Amount').value();
+                    var passphrase = uki('#' + me.uiid + '-Sending-Passphrase').value();
                     
                     if (address == "" || amount == "" || amount <= 0)
                     {
@@ -531,7 +583,7 @@ Collate.Account.RPC = Class.create(Collate.Account, {
                         return;
                     }
                     
-                    me.sendAmount(address, amount);
+                    me.sendAmount(address, amount, passphrase);
                 });
                 
                 // Generate send coins dashboard.
@@ -772,7 +824,7 @@ Collate.Account.RPC.Name = "Local Server (Wallet)";
 // <summary>
 // The account type description (to be shown in the New Account wizard).
 // </summary>
-Collate.Account.RPC.Description = "<i>Connects to a BitCoin server running on your local machine via RPC.</i><br/><br/>Uses a connection to the local BitCoin server running on your machine to provide transaction information and the ability to send coins via your browser.<br/><br/><strong style='color:red;'>It is not recommended that you choose this account type as it requires leaving the BitCoin software running and hence leaving your wallet unencrypted.</strong>";
+Collate.Account.RPC.Description = "<i>Connects to a BitCoin server running on your local machine via RPC.</i><br/><br/>Uses a connection to the local BitCoin server running on your machine to provide transaction information and the ability to send coins via your browser.";
 
 // <summary>
 // The account parameter list.
