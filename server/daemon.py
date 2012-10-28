@@ -11,7 +11,7 @@ if __name__ == '__main__':
     if not os.path.isfile("database.db"):
         conn = sqlite3.connect("database.db")
         c = conn.cursor()
-        c.execute("CREATE TABLE data (user text, passhash text, value text)")
+        c.execute("CREATE TABLE data (key text, passhash text, value text)")
         conn.commit()
     else:
         conn = sqlite3.connect("database.db")
@@ -19,10 +19,11 @@ if __name__ == '__main__':
 
 class CollateHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        print "Handling GET %s..." % self.path
         try:
             if self.path.startswith("/retrieve/"):
                 key = self.path[len("/retrieve/"):]
-                c.execute("SELECT value FROM data WHERE key = ?", key)
+                c.execute("SELECT value FROM data WHERE key = ?", (key,))
                 value = c.fetchone()
                 if value == None:
                     self.send_error(404, "Key not found: %s" % key)
@@ -38,20 +39,29 @@ class CollateHandler(BaseHTTPRequestHandler):
             traceback.print_exc()
 
     def do_POST(self):
+        print "Handling POST %s..." % self.path
         try:
             if self.path == "/store":
                 ctype, pdict = cgi.parse_header(self.headers.getheader("content-type"))
                 if ctype == "multipart/form-data":
                     query = cgi.parse_multipart(self.rfile, pdict)
-                key = query.get("key")
-                value = query.get("value")
-                passhash = query.get("passhash")
-                c.execute("SELECT value FROM data WHERE key = ? AND passhash = ?", (key, passhash))
-                if c.fetchone() == None:
-                    # Not permitted.
-                    self.send_error(403, "Access denied to write to: %s" % key)
-                c.execute("UPDATE data SET value = ? WHERE key = ? AND passhash = ?", (value, key, passhash))
-                c.commit()
+                key = query.get("key")[0]
+                value = query.get("value")[0]
+                passhash = query.get("passhash")[0]
+                print "key: " + str(key)
+                print "value: " + str(value)
+                print "hash:" + str(passhash)
+                c.execute("SELECT value FROM data WHERE key = ?", (key,))
+                if c.fetchone() != None:
+                    c.execute("SELECT value FROM data WHERE key = ? AND passhash = ?", (key, passhash))
+                    if c.fetchone() == None:
+                        # Not permitted.
+                        self.send_error(403, "Access denied to write to: %s" % key)
+                    c.execute("UPDATE data SET value = ? WHERE key = ? AND passhash = ?", (value, key, passhash))
+                else:
+                    c.execute("INSERT INTO data (value, key, passhash) VALUES (?, ?, ?)", (value, key, passhash))
+
+                conn.commit()
                 self.send_response(200)
                 self.end_headers()
             else:
